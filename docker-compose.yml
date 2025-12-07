@@ -216,9 +216,29 @@ services:
 
 volumes:
   db-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/VM/docker/db-data
   redis-queue-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/VM/docker/redis-queue-data
   sites:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/VM/docker/sites
   logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/VM/docker/logs
 
 networks:
   frappe_network:
