@@ -1,4 +1,4 @@
-FROM frappe/erpnext:v15.91.0
+FROM frappe/erpnext:v15.93.0
 
 # Switch to root to install dependencies if needed (optional)
 USER root
