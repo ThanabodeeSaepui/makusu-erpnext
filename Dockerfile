@@ -10,5 +10,5 @@ RUN apt-get update && apt-get install -y chromium
 USER frappe
 
 # Run the installation
-RUN bench setup-chrome
+# RUN bench setup-chrome
 RUN bench get-app https://github.com/frappe/print_designer --branch main
