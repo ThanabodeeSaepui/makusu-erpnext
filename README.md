@@ -86,14 +86,21 @@ docker compose -p frappe logs create-site -f
 ## Maintenance & Utility Commands
 If you ever need to clear the cache, run migrations, or completely wipe a site:
 
-### Clear Cache:
+### Install App:
 ```Bash
-docker compose -p frappe exec backend bench --site <your_site_name> clear-cache
+docker compose -p frappe exec backend bench --site <your_site_name> erpnext
+docker compose -p frappe exec backend bench --site <your_site_name> print_designer
+docker compose -p frappe exec backend bench --site <your_site_name> crm
 ```
 
 ### Run Migrations:
 ```Bash
 docker compose -p frappe exec backend bench --site <your_site_name> migrate
+```
+
+### Clear Cache:
+```Bash
+docker compose -p frappe exec backend bench --site <your_site_name> clear-cache
 ```
 
 ### Remove/Drop a Site Completely:
