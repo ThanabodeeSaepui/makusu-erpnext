@@ -32,6 +32,25 @@ RUN export APP_INSTALL_ARGS="" && \
 
 FROM frappe/base:${FRAPPE_BRANCH} AS backend
 
+USER root
+
+RUN apt-get update && apt-get install -y \
+    chromium \
+    chromium-driver \
+    fonts-liberation \
+    fonts-noto \
+    fonts-noto-cjk \
+    libnss3 \
+    libxss1 \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libgtk-3-0 \
+    libappindicator3-1 \
+    libgbm1 \
+    libxshmfence1 \
+    --no-install-recommends \
+  && rm -rf /var/lib/apt/lists/*
+
 USER frappe
 
 COPY --from=builder --chown=frappe:frappe /home/frappe/frappe-bench /home/frappe/frappe-bench

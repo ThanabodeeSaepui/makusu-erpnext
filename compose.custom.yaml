@@ -1,5 +1,6 @@
 services:
   backend:
+    shm_size: '256mb'
     depends_on:
       configurator:
         condition: service_completed_successfully
@@ -106,6 +107,8 @@ services:
         echo "Configuring PDF backend..."
         bench --site "$$SITE_NAME" set-config pdf_backend chromium || echo "Warning: Failed to set pdf_backend."
 
+        bench --site "$$SITE_NAME" set-config chrome_flags '["--no-sandbox","--disable-dev-shm-usage","--disable-gpu"]'
+
   db:
     command:
       - --character-set-server=utf8mb4
@@ -170,6 +173,7 @@ services:
         target: /home/frappe/frappe-bench/sites
 
   queue-long:
+    shm_size: '256mb'
     command:
       - bench
       - worker
@@ -189,8 +193,12 @@ services:
       - type: volume
         source: sites
         target: /home/frappe/frappe-bench/sites
+      - type: volume
+        source: chromium
+        target: /home/frappe/frappe-bench/chromium
 
   queue-short:
+    shm_size: '256mb'
     command:
       - bench
       - worker
@@ -210,6 +218,9 @@ services:
       - type: volume
         source: sites
         target: /home/frappe/frappe-bench/sites
+      - type: volume
+        source: chromium
+        target: /home/frappe/frappe-bench/chromium
 
   redis-cache:
     image: redis:6.2-alpine
@@ -228,6 +239,7 @@ services:
         target: /data
 
   scheduler:
+    shm_size: '256mb'
     command:
       - bench
       - schedule
@@ -245,6 +257,9 @@ services:
       - type: volume
         source: sites
         target: /home/frappe/frappe-bench/sites
+      - type: volume
+        source: chromium
+        target: /home/frappe/frappe-bench/chromium
 
   websocket:
     command:
