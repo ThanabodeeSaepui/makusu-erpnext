@@ -14,7 +14,9 @@ services:
       - type: volume
         source: sites
         target: /home/frappe/frappe-bench/sites
-        volume: {}
+      - type: volume
+        source: chromium
+        target: /home/frappe/frappe-bench/chromium
 
   configurator:
     command:
@@ -49,7 +51,6 @@ services:
       - type: volume
         source: sites
         target: /home/frappe/frappe-bench/sites
-        volume: {}
 
   create-site:
     image: makusu:16
@@ -72,6 +73,9 @@ services:
       - type: volume
         source: sites
         target: /home/frappe/frappe-bench/sites
+      - type: volume
+        source: chromium
+        target: /home/frappe/frappe-bench/chromium
     entrypoint:
       - bash
       - -c
@@ -86,9 +90,10 @@ services:
             --admin-password "$$ADMIN_PASSWORD" \
             --install-app erpnext \
             --install-app print_designer \
-            # --install-app crm \
             --set-default
 
+          bench --site "$$SITE_NAME" install-app crm
+          bench --site "$$SITE_NAME" setup-chrome
           bench --site "$$SITE_NAME" migrate
           bench --site "$$SITE_NAME" clear-cache
             
@@ -97,7 +102,7 @@ services:
           echo "Site '$$SITE_NAME' already exists. Skipping bootstrap."
         fi
 
-        # Fix: Manually set pdf_backend to 'chromium' to avoid the missing 'setup-new-pdf-backend' command error.
+        # Set pdf_backend to chromium. Guard against failure if already set or Chromium missing.
         echo "Configuring PDF backend..."
         bench --site "$$SITE_NAME" set-config pdf_backend chromium || echo "Warning: Failed to set pdf_backend."
 
@@ -128,7 +133,6 @@ services:
       - type: volume
         source: db-data
         target: /var/lib/mysql
-        volume: {}
 
   frontend:
     command:
@@ -164,7 +168,6 @@ services:
       - type: volume
         source: sites
         target: /home/frappe/frappe-bench/sites
-        volume: {}
 
   queue-long:
     command:
@@ -186,7 +189,6 @@ services:
       - type: volume
         source: sites
         target: /home/frappe/frappe-bench/sites
-        volume: {}
 
   queue-short:
     command:
@@ -208,7 +210,6 @@ services:
       - type: volume
         source: sites
         target: /home/frappe/frappe-bench/sites
-        volume: {}
 
   redis-cache:
     image: redis:6.2-alpine
@@ -225,7 +226,6 @@ services:
       - type: volume
         source: redis-queue-data
         target: /data
-        volume: {}
 
   scheduler:
     command:
@@ -245,7 +245,6 @@ services:
       - type: volume
         source: sites
         target: /home/frappe/frappe-bench/sites
-        volume: {}
 
   websocket:
     command:
@@ -265,7 +264,6 @@ services:
       - type: volume
         source: sites
         target: /home/frappe/frappe-bench/sites
-        volume: {}
 networks:
   default:
     name: makusu-erpnext_default
@@ -292,6 +290,13 @@ volumes:
       type: none
       o: bind
       device: /mnt/VM/docker/sites
+  chromium:
+    name: makusu-erpnext_chromium
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/VM/docker/chromium
 
 x-backend-defaults:
   depends_on:

@@ -4,8 +4,8 @@ Create the necessary directories for persistent storage.
 
 ```Bash
 cd /mnt/VM/docker/
-sudo rm -rf db-data redis-queue-data sites
-sudo mkdir db-data redis-queue-data sites
+sudo rm -rf db-data redis-queue-data sites chromium
+sudo mkdir db-data redis-queue-data sites chromium
 
 # Optional: Set permissions if required by your host OS
 # sudo chown -R 1000:1000 /mnt/VM/docker/sites
@@ -88,9 +88,9 @@ If you ever need to clear the cache, run migrations, or completely wipe a site:
 
 ### Install App:
 ```Bash
-docker compose -p frappe exec backend bench --site <your_site_name> erpnext
-docker compose -p frappe exec backend bench --site <your_site_name> print_designer
-docker compose -p frappe exec backend bench --site <your_site_name> crm
+docker compose -p frappe exec backend bench --site <your_site_name> install-app erpnext
+docker compose -p frappe exec backend bench --site <your_site_name> install-app print_designer
+docker compose -p frappe exec backend bench --site <your_site_name> install-app crm
 ```
 
 ### Run Migrations:
