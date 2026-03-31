@@ -35,19 +35,21 @@ FROM frappe/base:${FRAPPE_BRANCH} AS backend
 USER root
 
 RUN apt-get update && apt-get install -y \
-    chromium \
-    chromium-driver \
     fonts-liberation \
-    fonts-noto \
-    fonts-noto-cjk \
-    libnss3 \
-    libxss1 \
-    libasound2 \
-    libatk-bridge2.0-0 \
-    libgtk-3-0 \
-    libappindicator3-1 \
-    libgbm1 \
-    libxshmfence1 \
+    libatk-bridge2.0-0  \
+    libatk1.0-0  \
+    libatspi2.0-0  \
+    libgbm1  \
+    libgtk-4-1 \
+    libnspr4  \ 
+    libnss3  \
+    xdg-utils  \
+    libvulkan1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxkbcommon0 \
+    libxrandr2 \
     --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
