@@ -8,9 +8,10 @@ sudo rm -rf db-data redis-queue-data sites chromium
 sudo mkdir db-data redis-queue-data sites chromium
 
 # Optional: Set permissions if required by your host OS
-# sudo chown -R 1000:1000 /mnt/VM/docker/sites
-# sudo chown -R 999:999 /mnt/VM/docker/db-data
-# sudo chown -R 1000:1000 /mnt/VM/docker/redis-queue-data
+sudo chown -R 1000:1000 /mnt/VM/docker/sites
+sudo chown -R 999:999 /mnt/VM/docker/db-data
+sudo chown -R 1000:1000 /mnt/VM/docker/redis-queue-data
+sudo chown -R 1000:1000 /mnt/VM/docker/chromium
 ```
 
 ## 2. Define Custom Apps

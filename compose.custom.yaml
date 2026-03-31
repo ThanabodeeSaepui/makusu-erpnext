@@ -92,7 +92,7 @@ services:
             --install-app print_designer \
             --set-default
 
-          bench --site "$$SITE_NAME" install-app crm
+          # bench --site "$$SITE_NAME" install-app crm
           bench --site "$$SITE_NAME" setup-chrome
           bench --site "$$SITE_NAME" migrate
           bench --site "$$SITE_NAME" clear-cache
