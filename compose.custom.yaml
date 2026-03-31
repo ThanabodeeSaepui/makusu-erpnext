@@ -77,16 +77,10 @@ services:
       - -c
     command:
       - |
-        if [ ! -d "/home/frappe/frappe-bench/chromium" ]; then
-          echo "Setting up Chromium for PDF generation..."
-          bench setup-new-pdf-backend || echo "Warning: Chromium setup failed, PDF generation may not work."
-        fi
-
         if [ ! -d "/home/frappe/frappe-bench/sites/$$SITE_NAME" ]; then
           echo "Site '$$SITE_NAME' does not exist. Bootstrapping now..."
           
           bench new-site "$$SITE_NAME" \
-            --no-mariadb-socket \
             --mariadb-user-host-login-scope='%' \
             --db-root-password "$$MYSQL_ROOT_PASSWORD" \
             --admin-password "$$ADMIN_PASSWORD" \
@@ -102,6 +96,10 @@ services:
         else
           echo "Site '$$SITE_NAME' already exists. Skipping bootstrap."
         fi
+
+        # Fix: Manually set pdf_backend to 'chromium' to avoid the missing 'setup-new-pdf-backend' command error.
+        echo "Configuring PDF backend..."
+        bench --site "$$SITE_NAME" set-config pdf_backend chromium || echo "Warning: Failed to set pdf_backend."
 
   db:
     command:
