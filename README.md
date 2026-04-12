@@ -32,7 +32,7 @@ Build the custom Frappe image containing your defined apps.
 
 Linux / macOS:
 ```Bash
-docker build \
+sudo docker build \
     --build-arg=FRAPPE_PATH=https://github.com/frappe/frappe \
     --build-arg=FRAPPE_BRANCH=version-16 \
     --build-arg=APPS_JSON_BASE64=$APPS_JSON_BASE64 \
@@ -79,32 +79,33 @@ Once your .env and compose.custom.yaml are ready, start all containers.
 Note: Because we are using the create-site service, the system will automatically wait for the database, create the site, set up the database user, and install all apps defined in your script.
 
 ```Bash
-docker compose -p frappe --env-file .env -f compose.custom.yaml up -d
+sudo docker compose -p frappe --env-file .env -f compose.yaml up -d
 
 # You can watch the automated bootstrap process by tailing the logs:
-docker compose -p frappe logs create-site -f
+sudo docker compose -p frappe logs create-site -f
 ```
 ## Maintenance & Utility Commands
 If you ever need to clear the cache, run migrations, or completely wipe a site:
 
 ### Install App:
 ```Bash
-docker compose -p frappe exec backend bench --site <your_site_name> install-app erpnext
-docker compose -p frappe exec backend bench --site <your_site_name> install-app print_designer
-docker compose -p frappe exec backend bench --site <your_site_name> install-app crm
+sudo docker compose -p frappe exec backend bench --site <your_site_name> install-app erpnext
+sudo docker compose -p frappe exec backend bench --site <your_site_name> install-app print_designer
+sudo docker compose -p frappe exec backend bench --site <your_site_name> install-app crm
 ```
 
 ### Run Migrations:
 ```Bash
-docker compose -p frappe exec backend bench --site <your_site_name> migrate
+sudo docker compose -p frappe exec backend bench --site <your_site_name> migrate
 ```
 
 ### Clear Cache:
 ```Bash
-docker compose -p frappe exec backend bench --site <your_site_name> clear-cache
+sudo docker compose -p frappe exec backend bench --site <your_site_name> clear-cache
+sudo docker compose -p frappe exec backend bench --site <your_site_name> clear-website-cache
 ```
 
 ### Remove/Drop a Site Completely:
 ```Bash
-docker compose -p frappe exec backend bench drop-site <your_site_name> --force
+sudo docker compose -p frappe exec backend bench drop-site <your_site_name> --force
 ```
