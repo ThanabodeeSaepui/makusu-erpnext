@@ -18,6 +18,9 @@ services:
       - type: volume
         source: chromium
         target: /home/frappe/frappe-bench/chromium
+    environment:
+      GUNICORN_WORKERS: 4
+      GUNICORN_TIMEOUT: 120
 
   configurator:
     command:
