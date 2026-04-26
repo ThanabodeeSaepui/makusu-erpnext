@@ -50,7 +50,11 @@ RUN apt-get update && apt-get install -y \
     libxfixes3 \
     libxkbcommon0 \
     libxrandr2 \
+    fonts-thai-tlwg \
+    fonts-noto \
+    fonts-noto-cjk \
     --no-install-recommends \
+  && fc-cache -fv \
   && rm -rf /var/lib/apt/lists/*
 
 USER frappe
