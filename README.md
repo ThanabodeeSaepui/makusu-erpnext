@@ -87,6 +87,11 @@ sudo docker compose -p frappe logs create-site -f
 ## Maintenance & Utility Commands
 If you ever need to clear the cache, run migrations, or completely wipe a site:
 
+
+### Create Encryption Key
+```Bash
+sudo docker compose -p frappe exec backend /home/frappe/frappe-bench/env/bin/python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())";
+```
 ### Install App:
 ```Bash
 sudo docker compose -p frappe exec backend bench --site <your_site_name> install-app erpnext
