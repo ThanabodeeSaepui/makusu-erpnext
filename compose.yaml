@@ -23,9 +23,20 @@ services:
       GUNICORN_TIMEOUT: 120
 
   configurator:
-    command:
-      - |
-        ls -1 apps > sites/apps.txt; bench set-config -g db_host $$DB_HOST; bench set-config -gp db_port $$DB_PORT; bench set-config -g redis_cache "redis://$$REDIS_CACHE"; bench set-config -g redis_queue "redis://$$REDIS_QUEUE"; bench set-config -g redis_socketio "redis://$$REDIS_QUEUE"; bench set-config -gp socketio_port $$SOCKETIO_PORT; bench set-config -g encryption_key $$ENCRYPTION_KEY; bench set-config -g chromium_path /usr/bin/chromium-headless-shell; bench set-config -g chromium_binary_path /usr/bin/chromium-headless-shell
+    command: |
+      ls -1 apps > sites/apps.txt
+      bench set-config -g db_host $$DB_HOST
+      bench set-config -gp db_port $$DB_PORT
+      bench set-config -g redis_cache "redis://$$REDIS_CACHE"
+      bench set-config -g redis_queue "redis://$$REDIS_QUEUE"
+      bench set-config -g redis_socketio "redis://$$REDIS_QUEUE"
+      bench set-config -gp socketio_port $$SOCKETIO_PORT
+      bench set-config -g encryption_key $$ENCRYPTION_KEY
+      bench set-config -g chromium_path /usr/bin/chromium-headless-shell
+      bench set-config -g chromium_binary_path /usr/bin/chromium-headless-shell
+    entrypoint:
+      - bash
+      - -c
     depends_on:
       db:
         condition: service_healthy
@@ -36,9 +47,6 @@ services:
       redis-queue:
         condition: service_started
         required: true
-    entrypoint:
-      - bash
-      - -c
     environment:
       DB_HOST: db
       DB_PORT: "3306"
