@@ -87,6 +87,9 @@ sudo docker compose -p frappe logs create-site -f
 ## Maintenance & Utility Commands
 If you ever need to clear the cache, run migrations, or completely wipe a site:
 
+```Bash
+sudo docker compose -p frappe exec backend bash
+```
 
 ### Create Encryption Key
 ```Bash
@@ -94,23 +97,32 @@ sudo docker compose -p frappe exec backend /home/frappe/frappe-bench/env/bin/pyt
 ```
 ### Install App:
 ```Bash
-sudo docker compose -p frappe exec backend bench --site <your_site_name> install-app erpnext
-sudo docker compose -p frappe exec backend bench --site <your_site_name> install-app print_designer
-sudo docker compose -p frappe exec backend bench --site <your_site_name> install-app crm
+sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th install-app erpnext
+sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th install-app print_designer
+sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th install-app crm
+sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th uninstall-app erpnext_thailand
 ```
 
 ### Run Migrations:
 ```Bash
-sudo docker compose -p frappe exec backend bench --site <your_site_name> migrate
+sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th migrate
 ```
 
 ### Clear Cache:
 ```Bash
-sudo docker compose -p frappe exec backend bench --site <your_site_name> clear-cache
-sudo docker compose -p frappe exec backend bench --site <your_site_name> clear-website-cache
+sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th clear-cache
+sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th clear-website-cache
+```
+
+### Rebuild app
+```Bash
+sudo docker compose -p frappe exec backend bench build --hard-link
+sudo docker compose -p frappe exec backend bench --site all clear-cache
+sudo docker compose -p frappe exec backend bench --site all clear-website-cache
+sudo docker compose -p frappe restart frontend
 ```
 
 ### Remove/Drop a Site Completely:
 ```Bash
-sudo docker compose -p frappe exec backend bench drop-site <your_site_name> --force
+sudo docker compose -p frappe exec backend bench drop-site erpnext.makusu.in.th --force
 ```
