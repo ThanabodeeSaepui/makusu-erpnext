@@ -96,20 +96,21 @@ services:
       - |
         if [ ! -d "/home/frappe/frappe-bench/sites/$$SITE_NAME" ]; then
           echo "Site '$$SITE_NAME' does not exist. Bootstrapping now..."
-          
+
           bench new-site "$$SITE_NAME" \
+            --db-host db \
+            --db-port 3306 \
             --mariadb-user-host-login-scope='%' \
             --db-root-password "$$MYSQL_ROOT_PASSWORD" \
             --admin-password "$$ADMIN_PASSWORD" \
             --install-app erpnext \
-            # --install-app print_designer \
             --set-default
 
           # bench --site "$$SITE_NAME" install-app crm
           bench --site "$$SITE_NAME" setup-chrome
           bench --site "$$SITE_NAME" migrate
           bench --site "$$SITE_NAME" clear-cache
-            
+
           echo "Bootstrap complete!"
         else
           echo "Site '$$SITE_NAME' already exists. Skipping bootstrap."
@@ -120,6 +121,9 @@ services:
         bench --site "$$SITE_NAME" set-config pdf_backend chromium || echo "Warning: Failed to set pdf_backend."
 
         bench --site "$$SITE_NAME" set-config chrome_flags '["--no-sandbox","--disable-dev-shm-usage","--disable-gpu"]'
+        bench --site "$$SITE_NAME" set-config redis_cache "redis://$$REDIS_CACHE"
+        bench --site "$$SITE_NAME" set-config redis_queue "redis://$$REDIS_QUEUE"
+        bench --site "$$SITE_NAME" set-config redis_socketio "redis://$$REDIS_QUEUE"
 
   db:
     command:
