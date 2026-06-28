@@ -6,9 +6,5 @@
   {
     "url": "https://github.com/frappe/crm",
     "branch": "main"
-  },
-  {
-    "url": "https://github.com/ecosoft-frappe/erpnext_thailand",
-    "branch": "main"
   }
 ]
