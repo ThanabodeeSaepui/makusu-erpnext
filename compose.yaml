@@ -102,7 +102,7 @@ services:
             --db-root-password "$$MYSQL_ROOT_PASSWORD" \
             --admin-password "$$ADMIN_PASSWORD" \
             --install-app erpnext \
-            --install-app print_designer \
+            # --install-app print_designer \
             --set-default
 
           # bench --site "$$SITE_NAME" install-app crm
