@@ -32,8 +32,8 @@ services:
       bench set-config -g redis_socketio "redis://$$REDIS_QUEUE"
       bench set-config -gp socketio_port $$SOCKETIO_PORT
       bench set-config -g encryption_key $$ENCRYPTION_KEY
-      bench set-config -g chromium_path /usr/bin/chromium-headless-shell
-      bench set-config -g chromium_binary_path /usr/bin/chromium-headless-shell
+      bench set-config -g chromium_path /usr/bin/chromium
+      bench set-config -g chromium_binary_path /usr/bin/chromium
     entrypoint:
       - bash
       - -c
@@ -82,6 +82,8 @@ services:
       SITE_NAME: "${SITE_NAME}"
       MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
       ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
+      REDIS_CACHE: "redis-cache:6379"
+      REDIS_QUEUE: "redis-queue:6379"
     volumes:
       - type: volume
         source: sites
@@ -290,6 +292,9 @@ services:
     platform: linux/amd64
     pull_policy: missing
     restart: unless-stopped
+    environment:
+      FRAPPE_REDIS_CACHE: redis://redis-cache:6379
+      FRAPPE_REDIS_QUEUE: redis://redis-queue:6379
     volumes:
       - type: volume
         source: sites

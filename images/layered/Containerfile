@@ -35,13 +35,14 @@ FROM frappe/base:${FRAPPE_BRANCH} AS backend
 USER root
 
 RUN apt-get update && apt-get install -y \
+    chromium \
     fonts-liberation \
     libatk-bridge2.0-0  \
     libatk1.0-0  \
     libatspi2.0-0  \
     libgbm1  \
     libgtk-4-1 \
-    libnspr4  \ 
+    libnspr4  \
     libnss3  \
     xdg-utils  \
     libvulkan1 \
@@ -54,10 +55,11 @@ RUN apt-get update && apt-get install -y \
     fonts-noto \
     fonts-noto-cjk \
     --no-install-recommends \
-  && fc-cache -fv \
-  && rm -rf /var/lib/apt/lists/*
+ && fc-cache -fv \
+ && rm -rf /var/lib/apt/lists/*
 
 USER frappe
+RUN mkdir -p /home/frappe/frappe-bench/chromium
 
 COPY --from=builder --chown=frappe:frappe /home/frappe/frappe-bench /home/frappe/frappe-bench
 
