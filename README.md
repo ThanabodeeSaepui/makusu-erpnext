@@ -97,21 +97,19 @@ sudo docker compose -p frappe exec backend /home/frappe/frappe-bench/env/bin/pyt
 ```
 ### Install App:
 ```Bash
-sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th install-app erpnext
-sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th install-app print_designer
-sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th install-app crm
-sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th uninstall-app erpnext_thailand
+sudo docker compose -p frappe exec backend bench --site erpnext.corp.makusu.internal install-app erpnext
+sudo docker compose -p frappe exec backend bench --site erpnext.corp.makusu.internal install-app crm
 ```
 
 ### Run Migrations:
 ```Bash
-sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th migrate
+sudo docker compose -p frappe exec backend bench --site erpnext.corp.makusu.internal migrate
 ```
 
 ### Clear Cache:
 ```Bash
-sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th clear-cache
-sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th clear-website-cache
+sudo docker compose -p frappe exec backend bench --site erpnext.corp.makusu.internal clear-cache
+sudo docker compose -p frappe exec backend bench --site erpnext.corp.makusu.internal clear-website-cache
 ```
 
 ### Rebuild app
@@ -124,5 +122,5 @@ sudo docker compose -p frappe restart frontend
 
 ### Remove/Drop a Site Completely:
 ```Bash
-sudo docker compose -p frappe exec backend bench drop-site erpnext.makusu.in.th --force
+sudo docker compose -p frappe exec backend bench drop-site erpnext.corp.makusu.internal --force
 ```

@@ -106,7 +106,6 @@ services:
             --install-app erpnext \
             --set-default
 
-          # bench --site "$$SITE_NAME" install-app crm
           bench --site "$$SITE_NAME" setup-chrome
           bench --site "$$SITE_NAME" migrate
           bench --site "$$SITE_NAME" clear-cache
@@ -239,13 +238,13 @@ services:
         target: /home/frappe/frappe-bench/chromium
 
   redis-cache:
-    image: redis:6.2-alpine
+    image: redis:8.6-alpine
     networks:
       default: null
     restart: unless-stopped
 
   redis-queue:
-    image: redis:6.2-alpine
+    image: redis:8.6-alpine
     networks:
       default: null
     restart: unless-stopped
@@ -295,6 +294,40 @@ services:
       - type: volume
         source: sites
         target: /home/frappe/frappe-bench/sites
+
+  migrator:
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
+        required: true
+    image: makusu:16
+    networks:
+      default: null
+    platform: linux/amd64
+    pull_policy: missing
+    restart: on-failure:5
+    volumes:
+      - type: volume
+        source: sites
+        target: /home/frappe/frappe-bench/sites
+    entrypoint:
+      - bash
+      - -c
+    command:
+      - >
+        if [ "$$MIGRATE_SITES" != "true" ]; then
+          echo "[migrator] Migration disabled";
+          exit 0;
+        fi;
+        if [ -z "$$(find sites -mindepth 2 -maxdepth 2 -name site_config.json 2>/dev/null)" ]; then
+          echo "[migrator] No sites found, skipping migration";
+          exit 0;
+        fi;
+        echo "[migrator] Migrating all sites";
+        bench --site all migrate;
+    environment:
+      MIGRATE_SITES: "${MIGRATE_SITES:-true}"
+
 networks:
   default:
     name: makusu-erpnext_default
