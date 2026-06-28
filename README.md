@@ -4,8 +4,8 @@ Create the necessary directories for persistent storage.
 
 ```Bash
 cd /mnt/VM/docker/
-sudo rm -rf db-data redis-queue-data sites chromium
-sudo mkdir db-data redis-queue-data sites chromium
+sudo rm -rf db-data redis-queue-data sites
+sudo mkdir db-data redis-queue-data sites
 
 # Optional: Set permissions if required by your host OS
 sudo chown -R 1000:1000 /mnt/VM/docker/sites
