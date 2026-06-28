@@ -11,7 +11,6 @@ sudo mkdir db-data redis-queue-data sites
 sudo chown -R 1000:1000 /mnt/VM/docker/sites
 sudo chown -R 999:999 /mnt/VM/docker/db-data
 sudo chown -R 1000:1000 /mnt/VM/docker/redis-queue-data
-sudo chown -R 1000:1000 /mnt/VM/docker/chromium
 ```
 
 ## 2. Build the Image
@@ -20,12 +19,12 @@ Build the custom Frappe image containing your defined apps.
 Linux / macOS:
 ```Bash
 sudo docker build \
-    --no-cache \
-    --build-arg=FRAPPE_PATH=https://github.com/frappe/frappe \
-    --build-arg=FRAPPE_BRANCH=version-16 \
-    --build-arg=APPS_JSON_BASE64=$APPS_JSON_BASE64 \
-    --tag=makusu:16 \
-    --file=images/layered/Containerfile .
+ --no-cache \
+ --build-arg=FRAPPE_PATH=https://github.com/frappe/frappe \
+ --build-arg=FRAPPE_BRANCH=version-16 \
+ --secret=id=apps_json,src=apps.json \
+ --tag=makusu:16 \
+ --file=images/layered/Containerfile .
 ```
 
 Windows (PowerShell):
@@ -68,7 +67,7 @@ docker compose -p frappe exec backend bench --site <sitename> install-app erpnex
 If you ever need to clear the cache, run migrations, or completely wipe a site:
 
 ```Bash
-sudo docker compose -p frappe exec backend bash
+sudo docker compose -p frappe exec -u frappe backend bash
 ```
 
 ### Create Encryption Key
@@ -103,4 +102,14 @@ sudo docker compose -p frappe restart frontend
 ### Remove/Drop a Site Completely:
 ```Bash
 sudo docker compose -p frappe exec backend bench drop-site erpnext.corp.makusu.internal --force
+```
+
+## 5. Backup
+
+```Bash
+cd /mnt/VM/docker/
+
+sudo cp -a db-data db-data-backup
+sudo cp -a redis-queue-data redis-queue-data-backup
+sudo cp -a sites sites-backup
 ```
