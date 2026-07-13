@@ -80,6 +80,10 @@ services:
             echo "Timed out waiting for common_site_config.json"; exit 1;
           fi
         done;
+        if [ -d "sites/$$SITE_NAME" ]; then
+          echo "Site $$SITE_NAME already exists, skipping bench new-site.";
+          exit 0;
+        fi;
         bench new-site \
           --mariadb-user-host-login-scope='%' \
           --admin-password=$$SITE_ADMIN_PASSWORD \
