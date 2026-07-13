@@ -1,0 +1,15 @@
+{% if doc.sales_team %}
+<table style="width: 100%; border-collapse: collapse; margin-top: 15px">
+  <tr>
+    <td style="border: none; padding: 0; width: 50%">
+      <label>พนักงานขาย</label>
+    </td>
+    <td class="text-left" style="border: none; padding: 0">
+      <span class="value">
+        {% for row in doc.sales_team %} {{ row.sales_person }}{% if not
+        loop.last %}, {% endif %} {% endfor %}
+      </span>
+    </td>
+  </tr>
+</table>
+{% endif %}

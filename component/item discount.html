@@ -1,44 +1,38 @@
-<table class="table table-bordered" style="width:100%">
+<table class="table table-bordered" style="width: 100%">
   <thead>
     <tr>
-      <th style="width:10%">รหัสรายการ</th>
-      <th style="width:50%">ชื่อรายการ</th>
-      <th style="width:10%; text-align:right">ปริมาณ</th>
-      <th style="width:10%; text-align:right">อัตรา/ราคา</th>
-      {% set has_discount = namespace(value=false) %}
-      {% for item in doc.items %}
-        {% if item.discount_percentage and item.discount_percentage > 0 %}
-          {% set has_discount.value = true %}
-        {% endif %}
-      {% endfor %}
-      {% if has_discount.value %}
-      <th style="width:10%; text-align:right">ส่วนลด (%)</th>
+      <th style="width: 10%">รหัสรายการ</th>
+      <th style="width: 45%">ชื่อรายการ</th>
+      <th style="width: 10%; text-align: right">ปริมาณ</th>
+      <th style="width: 10%; text-align: right">อัตรา/ราคา</th>
+      {% set has_discount = namespace(value=false) %} {% for item in doc.items
+      %} {% if item.discount_percentage and item.discount_percentage > 0 %} {%
+      set has_discount.value = true %} {% endif %} {% endfor %} {% if
+      has_discount.value %}
+      <th style="width: 10%; text-align: right">ส่วนลด (%)</th>
       {% endif %}
-      <th style="width:15%; text-align:right">จำนวน</th>
+      <th style="width: 15%; text-align: right">จำนวน</th>
     </tr>
   </thead>
   <tbody>
-    {% set has_discount = namespace(value=false) %}
-    {% for item in doc.items %}
-      {% if item.discount_percentage and item.discount_percentage > 0 %}
-        {% set has_discount.value = true %}
-      {% endif %}
-    {% endfor %}
-    {% for item in doc.items %}
+    {% set has_discount = namespace(value=false) %} {% for item in doc.items %}
+    {% if item.discount_percentage and item.discount_percentage > 0 %} {% set
+    has_discount.value = true %} {% endif %} {% endfor %} {% for item in
+    doc.items %}
     <tr>
       <td>{{ item.item_code }}</td>
       <td>{{ item.item_name }}</td>
-      <td style="text-align:right">{{ item.qty }} {{ item.uom }}</td>
-      <td style="text-align:right">
-        {% if item.discount_percentage and item.discount_percentage > 0 %}
-        <div style="text-decoration: line-through; color: #999; font-size: 0.85em;">฿ {{ "%.2f"|format(item.price_list_rate) }}</div>
-        {% endif %}
-        ฿ {{ "%.2f"|format(item.rate) }}
+      <td style="text-align: right">{{ item.qty }} {{ item.uom }}</td>
+      <td style="text-align: right">
+        ฿ {{ "%.2f"|format(item.price_list_rate) }}
       </td>
       {% if has_discount.value %}
-      <td style="text-align:right">{{ item.discount_percentage }}%</td>
+      <td style="text-align: right">
+        {% if item.discount_percentage and item.discount_percentage > 0 %} {{
+        item.discount_percentage }}% {% else %} 0% {% endif %}
+      </td>
       {% endif %}
-      <td style="text-align:right">฿ {{ "%.2f"|format(item.amount) }}</td>
+      <td style="text-align: right">฿ {{ "%.2f"|format(item.amount) }}</td>
     </tr>
     {% endfor %}
   </tbody>

@@ -1,0 +1,75 @@
+<style>
+  .print-format .totals-table td {
+    padding: 4px 0 !important;
+    border: none !important;
+  }
+  .print-format .totals-table .totals-divider td {
+    border-top: 1px solid #f4f5f6 !important;
+    padding-top: 8px !important;
+  }
+</style>
+
+<table
+  class="totals-table"
+  style="margin-top: 15px; width: 100%; border-collapse: collapse"
+>
+  <colgroup>
+    <col style="width: 80%" />
+    <col style="width: 20%" />
+  </colgroup>
+  <tbody>
+    <!-- 1. Net Total -->
+    <tr>
+      <td class="text-left">รวมเป็นเงิน (Net Total)</td>
+      <td class="text-right">
+        <span class="value">{{ doc.get_formatted("net_total") }}</span>
+      </td>
+    </tr>
+
+    <!-- 2. Additional Discount -->
+    {% if doc.discount_amount %}
+    <tr>
+      <td class="text-left">ส่วนลดเพิ่มเติม (Discount)</td>
+      <td class="text-right">
+        <span class="value">-{{ doc.get_formatted("discount_amount") }}</span>
+      </td>
+    </tr>
+    {% endif %}
+
+    <!-- 3. Taxes and Other Charges -->
+    {% for tax in doc.taxes %}
+    <tr>
+      <td class="text-left">{{ tax.description }}</td>
+      <td class="text-right">
+        <span class="value">{{ tax.get_formatted("tax_amount") }}</span>
+      </td>
+    </tr>
+    {% endfor %}
+
+    <!-- 4. Grand Total -->
+    <tr class="totals-divider">
+      <td class="text-left">ยอดรวมทั้งสิ้น (Grand Total)</td>
+      <td class="text-right">
+        <span class="value">{{ doc.get_formatted("grand_total") }}</span>
+      </td>
+    </tr>
+
+    <!-- 5. Rounding -->
+    {% if doc.rounding_adjustment %}
+    <tr>
+      <td class="text-left">ปัดเศษ (Rounding)</td>
+      <td class="text-right">
+        <span class="value"
+          >{{ doc.get_formatted("rounding_adjustment") }}</span
+        >
+      </td>
+    </tr>
+    <tr>
+      <td class="text-left">ยอดสุทธิ (Rounded Total)</td>
+      <td class="text-right">
+        <span class="value">{{ doc.get_formatted("rounded_total") }}</span>
+      </td>
+    </tr>
+    {% endif %}
+  </tbody>
+</table>
