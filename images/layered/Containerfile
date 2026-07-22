@@ -29,15 +29,6 @@ RUN --mount=type=secret,id=apps_json,target=/opt/frappe/apps.json,uid=1000,gid=1
 
 FROM ${FRAPPE_IMAGE_PREFIX}/base:${FRAPPE_BRANCH} AS backend
 
-USER root
-RUN apt-get update && apt-get install -y \
-    fonts-thai-tlwg \
-    fonts-noto \
-    fonts-noto-cjk \
-    --no-install-recommends \
-  && fc-cache -fv \
-  && rm -rf /var/lib/apt/lists/*
-
 USER frappe
 
 COPY --from=builder --chown=frappe:frappe /home/frappe/frappe-bench /home/frappe/frappe-bench

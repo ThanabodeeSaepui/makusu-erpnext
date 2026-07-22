@@ -73,22 +73,27 @@ sudo docker compose -p frappe exec -u frappe backend bash
 ### Create Encryption Key
 ```Bash
 sudo docker compose -p frappe exec backend /home/frappe/frappe-bench/env/bin/python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())";
+
+uv run python -c "import os, base64; print(base64.urlsafe_b64encode(os.urandom(32)).decode())"
 ```
+
 ### Install App:
 ```Bash
-sudo docker compose -p frappe exec backend bench --site erpnext.corp.makusu.internal install-app erpnext
-sudo docker compose -p frappe exec backend bench --site erpnext.corp.makusu.internal install-app crm
+sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th install-app erpnext
+sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th install-app crm
+sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th install-app payments
+sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th install-app webshop
 ```
 
 ### Run Migrations:
 ```Bash
-sudo docker compose -p frappe exec backend bench --site erpnext.corp.makusu.internal migrate
+sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th migrate
 ```
 
 ### Clear Cache:
 ```Bash
-sudo docker compose -p frappe exec backend bench --site erpnext.corp.makusu.internal clear-cache
-sudo docker compose -p frappe exec backend bench --site erpnext.corp.makusu.internal clear-website-cache
+sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th clear-cache
+sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th clear-website-cache
 ```
 
 ### Rebuild app
@@ -101,7 +106,7 @@ sudo docker compose -p frappe restart frontend
 
 ### Remove/Drop a Site Completely:
 ```Bash
-sudo docker compose -p frappe exec backend bench drop-site erpnext.corp.makusu.internal --force
+sudo docker compose -p frappe exec backend bench drop-site erpnext.makusu.in.th --force
 ```
 
 ## 5. Backup

@@ -1,0 +1,3 @@
+# Force LF line endings for shell scripts — CRLF breaks shebangs in Docker
+*.sh text eol=lf
+Containerfile text eol=lf
