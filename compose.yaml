@@ -121,10 +121,10 @@ services:
         - healthcheck.sh
         - --connect
         - --innodb_initialized
+      interval: 10s
       timeout: 5s
-      interval: 5s
-      retries: 5
-      start_period: 5s
+      retries: 30
+      start_period: 30s
     image: mariadb:11.8
     networks:
       default: null
