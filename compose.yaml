@@ -317,7 +317,7 @@ services:
       - node
       - /home/frappe/frappe-bench/apps/frappe/socketio.js
     depends_on:
-      configurator:
+      migrator:
         condition: service_completed_successfully
         required: true
     image: makusu:16
