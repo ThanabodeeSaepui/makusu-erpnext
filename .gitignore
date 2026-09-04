@@ -1,1 +1,4 @@
 .env
+db-data
+redis-queue-data
+sites

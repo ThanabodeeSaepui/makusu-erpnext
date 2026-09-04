@@ -3,7 +3,7 @@ name: frappe_docker
 services:
   backend:
     depends_on:
-      configurator:
+      migrator:
         condition: service_completed_successfully
         required: true
     environment:
@@ -26,6 +26,7 @@ services:
     command:
       - |
         ls -1 apps > sites/apps.txt; bench set-config -g db_host $$DB_HOST; bench set-config -gp db_port $$DB_PORT; bench set-config -g redis_cache "redis://$$REDIS_CACHE"; bench set-config -g redis_queue "redis://$$REDIS_QUEUE"; bench set-config -g redis_socketio "redis://$$REDIS_QUEUE"; bench set-config -gp socketio_port $$SOCKETIO_PORT; bench set-config -g chromium_path /usr/bin/chromium-headless-shell;
+        bench set-config -gp keep_backups_for_hours "$$BACKUP_RETENTION_HOURS";
     depends_on:
       db:
         condition: service_healthy
@@ -40,6 +41,7 @@ services:
       - bash
       - -c
     environment:
+      BACKUP_RETENTION_HOURS: ${BACKUP_RETENTION_HOURS:-168}
       DB_HOST: db
       DB_PORT: "3306"
       REDIS_CACHE: redis-cache:6379
@@ -86,21 +88,74 @@ services:
         fi;
         bench new-site \
           --mariadb-user-host-login-scope='%' \
-          --admin-password=$$SITE_ADMIN_PASSWORD \
+          --admin-password="$$SITE_ADMIN_PASSWORD" \
           --db-root-username=root \
-          --db-root-password=$$MYSQL_ROOT_PASSWORD \
+          --db-root-password="$$MYSQL_ROOT_PASSWORD" \
           --install-app erpnext \
-          --set-default $$SITE_NAME;
+          --set-default "$$SITE_NAME";
     environment:
-      SITE_NAME: ${SITE_NAME:-localhost}
-      SITE_ADMIN_PASSWORD: ${SITE_ADMIN_PASSWORD:-admin}
-      MYSQL_ROOT_PASSWORD: "123"
+      SITE_NAME: ${SITE_NAME:?Set SITE_NAME in .env}
+      SITE_ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
     image: makusu:16
     networks:
       default: null
     platform: linux/amd64
     pull_policy: missing
     restart: on-failure
+    volumes:
+      - type: volume
+        source: sites
+        target: /home/frappe/frappe-bench/sites
+        volume: {}
+
+  cron:
+    command:
+      - daemon
+      - --docker
+    depends_on:
+      scheduler:
+        condition: service_started
+        required: true
+    image: mcuadros/ofelia:0.3.22
+    networks:
+      default: null
+    pull_policy: missing
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        read_only: true
+
+  migrator:
+    command:
+      - |
+        if [ "$$MIGRATE_SITES" != "true" ]; then
+          echo "[migrator] Migration disabled";
+          exit 0;
+        fi;
+        if [ -z "$$(find sites -mindepth 2 -maxdepth 2 -name site_config.json 2>/dev/null)" ]; then
+          echo "[migrator] No sites found, skipping migration";
+          exit 0;
+        fi;
+        echo "[migrator] Migrating all sites";
+        bench --site all migrate;
+    depends_on:
+      create-site:
+        condition: service_completed_successfully
+        required: true
+    entrypoint:
+      - bash
+      - -c
+    environment:
+      MIGRATE_SITES: ${MIGRATE_SITES:-true}
+    image: makusu:16
+    networks:
+      default: null
+    platform: linux/amd64
+    pull_policy: missing
+    restart: "on-failure:5"
     volumes:
       - type: volume
         source: sites
@@ -114,7 +169,7 @@ services:
       - --skip-character-set-client-handshake
     environment:
       MARIADB_AUTO_UPGRADE: "1"
-      MYSQL_ROOT_PASSWORD: "123"
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
     healthcheck:
       test:
         - CMD
@@ -178,7 +233,7 @@ services:
       - --queue
       - long,default,short
     depends_on:
-      configurator:
+      migrator:
         condition: service_completed_successfully
         required: true
     image: makusu:16
@@ -200,7 +255,7 @@ services:
       - --queue
       - short,default
     depends_on:
-      configurator:
+      migrator:
         condition: service_completed_successfully
         required: true
     image: makusu:16
@@ -236,10 +291,16 @@ services:
       - bench
       - schedule
     depends_on:
-      configurator:
+      migrator:
         condition: service_completed_successfully
         required: true
     image: makusu:16
+    labels:
+      ofelia.enabled: "true"
+      ofelia.job-exec.datecron.command: "bench --site all backup --with-files --compress"
+      ofelia.job-exec.datecron.no-overlap: "true"
+      ofelia.job-exec.datecron.schedule: "${BACKUP_CRONSTRING:-@every 6h}"
+      ofelia.job-exec.datecron.user: "frappe"
     networks:
       default: null
     platform: linux/amd64
@@ -299,7 +360,7 @@ volumes:
 
 x-backend-defaults:
   depends_on:
-    configurator:
+    migrator:
       condition: service_completed_successfully
   image: makusu:16
   pull_policy: missing

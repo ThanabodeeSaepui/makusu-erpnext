@@ -50,13 +50,18 @@ nano .env
 ```
 
 ## 4. Start the Cluster
-Once your .env and compose.custom.yaml are ready, start all containers.
+Once your `.env` and `compose.yaml` are ready, start all containers.
 
-Note: Because we are using the create-site service, the system will automatically wait for the database, create the site, set up the database user, and install all apps defined in your script.
+Note: `create-site` waits for the database and Redis, creates a missing site, and installs ERPNext. Install the other apps from `apps.json` with the commands below when needed.
 
 ```Bash
 sudo docker compose -p frappe --env-file .env -f compose.yaml up -d
 ```
+
+Startup is gated: `create-site` completes first, then `migrator` runs
+`bench --site all migrate`. Backend, worker, scheduler, and websocket services
+start only after migration succeeds. Set `MIGRATE_SITES=false` only when
+intentionally bypassing migration for recovery.
 
 ## Create Site
 ```Bash
@@ -79,21 +84,21 @@ uv run python -c "import os, base64; print(base64.urlsafe_b64encode(os.urandom(3
 
 ### Install App:
 ```Bash
-sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th install-app erpnext
-sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th install-app crm
-sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th install-app payments
-sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th install-app webshop
+docker compose -p frappe exec backend bench --site erpnext.makusu.in.th install-app erpnext
+docker compose -p frappe exec backend bench --site erpnext.makusu.in.th install-app crm
+docker compose -p frappe exec backend bench --site erpnext.makusu.in.th install-app payments
+docker compose -p frappe exec backend bench --site erpnext.makusu.in.th install-app webshop
 ```
 
 ### Run Migrations:
 ```Bash
-sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th migrate
+docker compose -p frappe exec backend bench --site erpnext.makusu.in.th migrate
 ```
 
 ### Clear Cache:
 ```Bash
-sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th clear-cache
-sudo docker compose -p frappe exec backend bench --site erpnext.makusu.in.th clear-website-cache
+docker compose -p frappe exec backend bench --site erpnext.makusu.in.th clear-cache
+docker compose -p frappe exec backend bench --site erpnext.makusu.in.th clear-website-cache
 ```
 
 ### Rebuild app
@@ -109,12 +114,23 @@ sudo docker compose -p frappe restart frontend
 sudo docker compose -p frappe exec backend bench drop-site erpnext.makusu.in.th --force
 ```
 
-## 5. Backup
+## 5. Backups
+
+Ofelia runs a full backup every six hours by default:
 
 ```Bash
-cd /mnt/VM/docker/
-
-sudo cp -a db-data db-data-backup
-sudo cp -a redis-queue-data redis-queue-data-backup
-sudo cp -a sites sites-backup
+bench --site all backup --with-files --compress
 ```
+
+Backups persist under `./sites/<site>/private/backups`. Frappe removes backup
+files older than `BACKUP_RETENTION_HOURS` (default: 168 hours) on the next
+backup run. Change the schedule with `BACKUP_CRONSTRING`.
+
+Run an immediate backup with:
+
+```Bash
+docker compose -p frappe exec backend bench --site all backup --with-files --compress
+```
+
+These backups share the same host filesystem as the live deployment. Copy them
+to separate storage for protection from host or disk failure.
