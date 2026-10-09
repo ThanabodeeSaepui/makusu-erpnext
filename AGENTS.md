@@ -10,11 +10,11 @@ Makusu ERPNext is a **Docker deployment repository** for a self-hosted ERPNext v
 ┌─────────────────────────────────────────────────────┐
 │                  Docker Build                       │
 │  Containerfile (multi-stage)                        │
-│  apps.json → base64 → bench init → makusu:16 image  │
+│  apps.json (secret) → bench init → makusu:16 image  │
 └──────────────────────┬──────────────────────────────┘
                        │
 ┌──────────────────────▼──────────────────────────────┐
-│              Docker Compose Stack (12 services)      │
+│              Docker Compose Stack (13 services)      │
 │                                                     │
 │  db (MariaDB 11.8) ──► configurator (bench set-config)
 │       │                        │
@@ -22,15 +22,18 @@ Makusu ERPNext is a **Docker deployment repository** for a self-hosted ERPNext v
 │  redis-cache ──► create-site (bootstrap Frappe site)
 │  redis-queue         │
 │       │              ▼
+│       │         migrator (bench --site all migrate)
+│       │              │
+│       ▼              ▼
 │       └──► backend (gunicorn :8000)                  │
 │            frontend (nginx :8080)                    │
 │            websocket (socketio :9000)                │
-│            scheduler                                 │
+│            scheduler + cron (Ofelia backup)          │
 │            queue-short / queue-long                  │
 └─────────────────────────────────────────────────────┘
 ```
 
-**Startup flow:** db + redis → configurator (writes bench config) → create-site (installs erpnext + print_designer, creates site) → all application services come up.
+**Startup flow:** db + redis → configurator (writes bench config) → create-site (installs erpnext, creates site) → migrator (`bench --site all migrate`) → all application services come up. `cron` (Ofelia) runs `bench --site all backup --with-files --compress` every 6h (`BACKUP_CRONSTRING`) and prunes backups older than `BACKUP_RETENTION_HOURS`.
 
 **Customization strategy:** UI-configured custom fields (not code) + Jinja2 print templates in `component/`. No hooks.py, no controllers, no whitelisted APIs.
 
@@ -39,37 +42,33 @@ Makusu ERPNext is a **Docker deployment repository** for a self-hosted ERPNext v
 | Path | Purpose |
 |------|---------|
 | `images/layered/Containerfile` | Multi-stage Docker build (builder → backend with fonts/Chromium) |
-| `compose.yaml` | Base compose: all 12 services, volumes, x-anchor defaults |
-| `overrides/` | 17 compose override files for proxy, DB, SSL, multi-bench scenarios |
+| `compose.yaml` | Base compose: all 13 services, volumes, x-anchor defaults |
+| `overrides/` | 16 compose override files for proxy, DB, SSL, multi-bench scenarios |
 | `component/` | Jinja2 HTML print format templates (Thai language) |
 | `setup/` | Manual setup instructions (custom fields) |
-| `*.env` | Environment configuration (secrets in `.env`, build vars in `custom.env`) |
+| `.env` | Environment configuration (SITE_NAME, MYSQL_ROOT_PASSWORD, ADMIN_PASSWORD) |
 
 ## Development Commands
 
 ### Build
 
 ```bash
-# Encode apps.json for Docker build arg
-base64 -w 0 apps.json > apps.json.base64    # Linux
-certutil -encodehex apps.json apps.json.base64 -n 0   # Windows
-
-# Build custom image
-docker build -t makusu:16 -f images/layered/Containerfile .
-
-# Or use compose (with custom.env)
-docker compose --env-file custom.env build
+# Build custom image (apps.json passed as BuildKit secret)
+docker build \
+  --build-arg=FRAPPE_BRANCH=version-16 \
+  --secret=id=apps_json,src=apps.json \
+  --tag=makusu:16 \
+  --file=images/layered/Containerfile .
 ```
 
 ### Run
 
 ```bash
-# Merge base compose with overrides
-docker compose -f compose.yaml \
-  -f overrides/compose.mariadb.yaml \
-  -f overrides/compose.redis.yaml \
-  -f overrides/compose.noproxy.yaml \
-  up -d
+# Standalone stack: db, redis, migrator, and Ofelia backup cron are in base compose
+docker compose -p frappe --env-file .env -f compose.yaml up -d
+
+# Optional: layer a proxy override
+# docker compose -p frappe --env-file .env -f compose.yaml -f overrides/compose.https.yaml up -d
 
 # View logs
 docker compose logs -f backend
@@ -91,8 +90,8 @@ bench build --app erpnext
 ### App Management
 
 ```bash
-bench --site erpnext.makusu.in.th install-app print_designer
-bench --site erpnext.makusu.in.th uninstall-app crm
+bench --site erpnext.makusu.in.th install-app crm
+bench --site erpnext.makusu.in.th install-app payments
 ```
 
 ## Code Conventions & Common Patterns
@@ -127,22 +126,22 @@ There are no Python files, no `hooks.py`, no `setup.py`, no `pyproject.toml`. Al
 
 Base `compose.yaml` defines services; overrides add/modify for specific deployments:
 
-- `compose.mariadb.yaml` — Built-in MariaDB
-- `compose.redis.yaml` — Built-in Redis
-- `compose.noproxy.yaml` — Direct port exposure (dev)
 - `compose.proxy.yaml` / `compose.https.yaml` — Traefik reverse proxy
-- `compose.multi-bench.yaml` — Multiple ERPNext sites shared DB/Redis
-- `compose.backup-cron.yaml` — Ofelia cron for automated backups
+- `compose.traefik.yaml` / `compose.traefik-ssl.yaml` — Standalone Traefik with dashboard
+- `compose.nginxproxy.yaml` / `compose.nginxproxy-ssl.yaml` — nginx-proxy + acme-companion
+- `compose.multi-bench.yaml` / `compose.custom-domain.yaml` — Multiple sites / custom domains
+- `compose.mariadb.yaml` / `compose.redis.yaml` / `compose.noproxy.yaml` — Legacy upstream scenarios (db/redis are already in base compose)
+
+Migrations (`migrator` service) and Ofelia backups (`cron` service) are built into base `compose.yaml` — no override needed.
 
 ## Important Files
 
 | File | Role |
 |------|------|
-| `compose.yaml` | Main orchestration — all 12 services |
+| `compose.yaml` | Main orchestration — all 13 services |
 | `images/layered/Containerfile` | Multi-stage image build |
-| `apps.json` | Frappe app manifest (erpnext, print_designer, crm, erpnext_thailand) |
+| `apps.json` | Frappe app manifest (erpnext, crm, webshop, payments) |
 | `.env` | Runtime secrets (SITE_NAME, MYSQL_ROOT_PASSWORD, ADMIN_PASSWORD) |
-| `custom.env` | Build-time vars (ERPNEXT_VERSION, CUSTOM_IMAGE, DB/Redis hosts) |
 | `component/item.html` | Sales document item list template |
 | `component/item discount.html` | Item list with discount display |
 | `setup/custom field.md` | Custom field setup instructions |
@@ -153,8 +152,8 @@ Base `compose.yaml` defines services; overrides add/modify for specific deployme
 - **Runtime:** Docker (no local Python/Node required)
 - **Base image:** Frappe v16 (`frappe/build:version-16`, `frappe/base:version-16`)
 - **Database:** MariaDB 11.8 (primary) or PostgreSQL 13.5 (alternative)
-- **Cache/Queue:** Redis 6.2 Alpine
-- **Web server:** nginx (frontend), gunicorn (backend, 4 workers, gthread)
+- **Cache/Queue:** Redis 8.6 Alpine
+- **Web server:** nginx (frontend), gunicorn (backend, 2 workers × 4 threads, gthread)
 - **Fonts:** Thai (Sarabun, Noto Sans Thai), CJK, Noto (baked into image)
 - **Chromium:** Installed in image for PDF generation
 - **No package manager** — no npm, pip, or bench commands outside containers
@@ -173,9 +172,11 @@ Verification approach:
 
 ## Upstream Apps (installed, not modified)
 
-| App | Version | Purpose |
-|-----|---------|---------|
-| erpnext | v16 | Core ERP system |
-| print_designer | main | Visual print format designer |
+| App | Branch | Purpose |
+|-----|--------|---------|
+| erpnext | version-16 | Core ERP system |
 | crm | main | Customer relationship management |
-| erpnext_thailand | main | Thailand localization (tax, VAT, language) |
+| webshop | version-16 | E-commerce storefront |
+| payments | version-16 | Payment gateway integrations |
+
+Only `erpnext` is installed at site creation (`create-site`); install the others with the App Management commands above.
